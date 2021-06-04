@@ -1,64 +1,63 @@
-from flask import Flask, flash, redirect, render_template, request, session, abort
-from random import randint
+import math
+import os
+import sys
+import argparse
+from scipy.constants import convert_temperature
 
-myapp = Flask(__name__)
+def convert_temprature(val, inputScale, outputScale, student_response):
+        inputScale = input_unit.lower().strip()
+        outputScale = output_unit.lower().strip()
 
-@myapp.route("/")
-def hello():
-    return render_template(
-        'app.html', **locals())
+        kelvin_value = 0
+        target_value = 0
 
-# Logic for temperature conversion
-@myapp.route('/send', methods=['POST'])
-def send():
-    if request.method == 'POST':
-        input_unit = request.form['input_unit']
-        output_unit = request.form['output_unit']
+        if inputScale in ['fahrenheit','rankine','kelvin','celsius'] and outputScale in ['fahrenheit','rankine','kelvin','celsius']:
+           if inputScale == 'celsius':
+              kelvin_value = val + 273.15
+           elif inputScale == 'fahrenheit':
+              kelvin_value = ((val - 32)*5/9) + 273.15
+           elif inputScale == 'rankine':
+              kelvin_value = ((input_vaule)*5)/9
+           elif inputScale == 'kelvin':
+              kelvin_value = val
 
-        try:
-           input_value = float(request.form['input_value'])
-           student_response = float(request.form['student_response'])
-        except:
-           return render_template('app.html', result="incorrect")
-
-        # Ignore case for inputs
-        input_unit_ic = input_unit.lower().strip()
-        output_unit_ic = output_unit.lower().strip()
-
-        mid_value = 0
-        output_value = 0
-
-        if input_unit_ic in ['fahrenheit','kelvin','celsius','rankine'] and output_unit_ic in ['fahrenheit','kelvin','celsius','rankine']:
-        # Convert input unit to kelvin
-           if input_unit_ic == 'celsius':
-              mid_value = input_value + 273.15
-           elif input_unit_ic == 'fahrenheit':
-              mid_value = ((input_value - 32)*5/9) + 273.15
-           elif input_unit_ic == 'rankine':
-              mid_value = ((input_vaule)*5)/9
-           elif input_unit_ic == 'kelvin':
-              mid_value = input_value
-
-        # Convert kelvin to output_unit
-           if output_unit_ic == 'celsius':
-              output_value = mid_value - 273.15
-           elif output_unit_ic == 'fahrenheit':
-              output_value = ((mid_value - 273.15)*9/5) + 32
-           elif output_unit_ic == 'rankine':
-              output_value = mid_value * 1.8
-           elif output_unit_ic == 'kelvin':
-              output_value = mid_value
+           if outputScale == 'celsius':
+              target_value = kelvin_value - 273.15
+           elif outputScale == 'fahrenheit':
+              target_value = ((kelvin_value - 273.15)*9/5) + 32
+           elif outputScale == 'rankine':
+              target_value = kelvin_value * 1.8
+           elif outputScale == 'kelvin':
+              target_value = kelvin_value
         else:
            output = "invalid"
-        if round(student_response,1) == round(output_value,1):
+        if round(student_response,1) == round(target_value,1):
            output = "correct"
-        elif round(student_response,1) != round(output_value,1):
+        elif round(student_response,1) != round(target_value,1):
            output = "incorrect"
         else:
            output = "incorrect"
-
-        return render_template('app.html', result=output)
-
+           
+        return (output)
 
 if __name__ == "__main__":
-    myapp.run(host='0.0.0.0', port=80)
+    parser = argparse.ArgumentParser(description='Tempreature unit conversion checker')
+    parser.add_argument('-inputValue', '--val',type=str,
+                        help='Input temprature value')
+    parser.add_argument('-inputUnit', '--inunit',type=str,
+                        help='Input unit of temprature')
+    parser.add_argument('-targetUnit', '--outunit',type=str,
+                        help='Target temperature Unit')
+    parser.add_argument('-targetVal', '--tar',type=str,
+                        help='Target temperature value')
+    args = parser.parse_args()
+
+    validUnits = ["Fahrenheit", "Rankine", "Kelvin", "Celsius"]
+
+    Input = args.val
+    inUnit = str(args.inunit)
+    Output = args.tar
+    outUnit = str(args.outunit)
+
+    result = convert_temprature(Input, inUnit, outunit, Output)
+    print(result)
